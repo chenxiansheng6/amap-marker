@@ -6,8 +6,8 @@ export enum ENV {
 }
 
 const ENDPOINT = {
-  [ENV.DEV]: 'http://api.yz-app.illusiontech.cn:5500',
-  [ENV.PROD]: 'https://api.yz-app.illusiontech.cn:5501',
+  [ENV.DEV]: 'http://localhost:3000',
+  [ENV.PROD]: 'http://localhost:3000',
 };
 
 @Injectable({

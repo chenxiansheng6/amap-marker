@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { v4 } from 'uuid';
-import { BehaviorSubject, Observable, of, switchMap, take, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, switchMap, take, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { SettingService } from './setting.service';
 
 export interface Data {
   id: string;
@@ -15,9 +17,16 @@ export interface Data {
   providedIn: 'root',
 })
 export class DataService {
+  private _endpoint = '';
+
   private _dataSource: BehaviorSubject<Data[]> = new BehaviorSubject<Data[]>([]);
 
-  constructor() {}
+  constructor(
+    @Inject(HttpClient) private _http: HttpClient,
+    @Inject(SettingService) private _settingService: SettingService,
+  ) {
+    this._endpoint = this._settingService.endpoint;
+  }
 
   get dataSource$(): Observable<Data[]> {
     return this._dataSource.asObservable();
@@ -29,7 +38,9 @@ export class DataService {
 
   // 获取点数据
   public getData(): Observable<Data[]> {
-    return of(this.dataSource).pipe(
+    const url = `${this._endpoint}/api/data`;
+    return this._http.get<{ content: Data[] }>(url).pipe(
+      map((res) => res.content),
       tap((data) => this._dataSource.next(data)),
     );
   }
@@ -39,12 +50,14 @@ export class DataService {
    * @param data
    */
   public createData(data: Partial<Data>): Observable<Data> {
+    const url = `${this._endpoint}/api/data`;
     return this.dataSource$.pipe(
       take(1),
       switchMap((dataSource) => {
         const newData = { ...data, id: v4() } as Data;
-        this._dataSource.next([newData, ...dataSource]);
-        return of(newData);
+        return this._http.post<Data>(url, newData).pipe(
+          tap(() => this._dataSource.next([newData, ...dataSource])),
+        );
       }),
     );
   }
@@ -54,15 +67,16 @@ export class DataService {
    * @param data
    */
   public updateData(data: Data): Observable<Data> {
+    const url = `${this._endpoint}/api/data`;
     return this.dataSource$.pipe(
       take(1),
-      switchMap((dataSource) => {
-        const index = dataSource.findIndex((item) => item.id === data.id);
-        if (index === -1) return of(data);
-        dataSource[index] = data;
-        this._dataSource.next(dataSource);
-        return of(data);
-      }),
+      switchMap((dataSource) => this._http.put<Data>(url, data).pipe(
+        tap(() => {
+          const index = dataSource.findIndex((item) => item.id === data.id);
+          dataSource[index] = data;
+          this._dataSource.next(dataSource);
+        }),
+      )),
     );
   }
 
@@ -71,15 +85,16 @@ export class DataService {
    * @param id
    */
   public deleteData(id: string): Observable<void> {
+    const url = `${this._endpoint}/api/data`;
     return this.dataSource$.pipe(
       take(1),
-      switchMap((dataSource) => {
-        const index = dataSource.findIndex((item) => item.id === id);
-        if (index === -1) return of(null);
-        dataSource.splice(index, 1);
-        this._dataSource.next(dataSource);
-        return of(null);
-      }),
+      switchMap((dataSource) => this._http.delete<void>(url, { body: { id } }).pipe(
+        tap(() => {
+          const index = dataSource.findIndex((item) => item.id === id);
+          dataSource.splice(index, 1);
+          this._dataSource.next(dataSource);
+        }),
+      )),
     );
   }
 }
