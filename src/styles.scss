@@ -1,1 +1,37 @@
 /* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: '-apple-system', system-ui, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: rgb(51, 51, 51);
+  overflow-x: hidden;
+}
+
+@layer components {
+  .btn {
+    @apply py-2 text-sm font-semibold transition-all rounded-md bg-white/30 backdrop-blur-md disabled:opacity-30 disabled:pointer-events-none;
+  }
+
+  .input {
+    @apply bg-transparent px-1.5 py-1.5 focus:outline-none block w-full border border-gray-400 transition-all focus:border-primary rounded-md;
+  }
+
+  .card {
+    @apply rounded-md p-3 bg-white/70 shadow-md overflow-hidden;
+  }
+
+  // 背景圆形渐变
+  .bg-primary-circle {
+    background: radial-gradient(circle, rgba(5, 117, 249, 0.5), rgba(255, 255, 255, 0.1) 12px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .bg-red-circle {
+    background: radial-gradient(circle, rgba(248, 113, 113, 0.5), rgba(255, 255, 255, 0.1) 12px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}

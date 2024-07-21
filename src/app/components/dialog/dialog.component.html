@@ -1,0 +1,48 @@
+<div class="relative flex flex-col w-full h-full">
+  <!-- Content -->
+  <div
+    class="min-w-52 flex flex-col flex-auto items-center p-8 pb-6"
+  >
+    <ng-container *ngIf="data.title || data.message">
+      <div
+        class="flex flex-col items-center space-y-1 text-center"
+      >
+        <!-- Title -->
+        <ng-container *ngIf="data.title">
+          <div
+            class="text-lg mb-4 leading-6 font-medium"
+            [innerHTML]="data.title"
+          ></div>
+        </ng-container>
+
+        <!-- Message -->
+        <ng-container *ngIf="data.message">
+          <div class="" [innerHTML]="data.message"></div>
+        </ng-container>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center border-t border-gray-300">
+    <!-- Cancel -->
+    <button
+      *ngIf="data.actions.cancel.show"
+      class="py-3 border-gray-300 hover:bg-gray-200"
+      [ngClass]="data.actions.confirm.show ? 'w-1/2 border-r' : 'w-full'"
+      [matDialogClose]="'cancelled'"
+    >
+      {{ data.actions.cancel.label }}
+    </button>
+
+    <!-- Confirm -->
+    <button
+      *ngIf="data.actions.confirm.show"
+      class="py-3 text-primary hover:bg-gray-200"
+      [ngClass]="data.actions.cancel.show ? 'w-1/2' : 'w-full'"
+      [matDialogClose]="'confirmed'"
+    >
+      {{ data.actions.confirm.label }}
+    </button>
+  </div>
+</div>
