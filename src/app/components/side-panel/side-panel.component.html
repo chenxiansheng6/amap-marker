@@ -101,7 +101,7 @@
       >取消</button>
       <button
         class="btn w-1/2 text-primary border border-primary hover:text-white hover:bg-primary"
-        [disabled]="operating()"
+        [disabled]="operating() || dataForm.invalid"
         (click)="saveUpdate()"
       >{{ mode() === 'create' ? '创建' : '保存' }}</button>
     </div>
