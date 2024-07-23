@@ -8,8 +8,9 @@ import {
   signal,
 } from '@angular/core';
 import { take } from 'rxjs';
-import { AmapService, DataService, GeoLocationService } from './services';
+import { AmapService, DataService } from './services';
 import { SidePanelComponent } from './components';
+import { Data } from './interfaces';
 
 @Component({
   selector: 'app-root',
@@ -27,24 +28,58 @@ export class AppComponent implements OnInit, AfterViewInit {
   constructor(
     @Inject(AmapService) private _amapService: AmapService,
     @Inject(DataService) private _dataService: DataService,
-    @Inject(GeoLocationService) private _geoLocationService: GeoLocationService,
   ) {}
 
-  ngOnInit(): void {
-    this._dataService.getData()
-      .pipe(take(1))
-      .subscribe();
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this._amapService.initMap(this.mapEl().nativeElement);
-    
-    this._geoLocationService.getLocation()
-      .pipe(take(1))
-      .subscribe((position) => {
-        const { longitude, latitude } = position.coords;
-        this._amapService.map?.setCenter([longitude, latitude]);
-        // this._amapService.showCurrent({ longitude, latitude });
+
+    this._dataService.getData().pipe(take(1)).subscribe((data) => {
+      this.createMarkers(data);
+    });
+  }
+
+  public createMarkers(data: Data[]): void {
+    for (const item of data) {
+      const marker = new AMap.Marker({
+        position: [+item.lng, +item.lat],
+        anchor:'bottom-center',
       });
+      marker.setMap(this._amapService.map);
+      marker.on('click', (e) => {
+        this.setInfoWindow({ target: e.target, data: item });
+      });
+      this._dataService.markers.set(item.id, marker);
+    }
+    this._amapService.map?.setFitView();
+  }
+
+  public setInfoWindow(e): void {
+    const { target, data } = e;
+    const infoWindow = new AMap.InfoWindow({
+      isCustom: true,
+      offset: new AMap.Pixel(0, -34),
+      content: `
+        <div class="p-3 bg-white shadow-md rounded-md">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-semibold">${data.name}</span>
+            <img src="common/close.svg" class="w-6 h-6 cursor-pointer info-close">
+          </div>
+          <p class="text-sm">${data.description}</p>
+        </div>
+      `,
+    });
+    infoWindow.open(this._amapService.map, target.getPosition());
+    this.registerCloseEvent(infoWindow);
+  }
+
+  public registerCloseEvent(infoWindow: AMap.InfoWindow): void {
+    const closeBtn = Array.from(document.getElementsByClassName('info-close'));
+    for (const btn of closeBtn) {
+      btn.addEventListener('click', () => {
+        infoWindow.close();
+      }, { once: true });
+    }
   }
 }

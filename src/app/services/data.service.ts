@@ -13,6 +13,8 @@ export class DataService {
 
   private _dataSource: BehaviorSubject<Data[]> = new BehaviorSubject<Data[]>([]);
 
+  public markers: Map<string, AMap.Marker> = new Map();
+
   constructor(
     @Inject(HttpClient) private _http: HttpClient,
     @Inject(SettingService) private _settingService: SettingService,
@@ -23,10 +25,6 @@ export class DataService {
   get dataSource$(): Observable<Data[]> {
     return this._dataSource.asObservable();
   }
-
-  public dataSource: Data[] = [
-
-  ];
 
   // 获取点数据
   public getData(): Observable<Data[]> {
@@ -95,6 +93,8 @@ export class DataService {
           const index = dataSource.findIndex((item) => item.id === id);
           dataSource.splice(index, 1);
           this._dataSource.next(dataSource);
+          this.markers.get(id)?.setMap(null);
+          this.markers.delete(id);
         }),
       )),
     );
