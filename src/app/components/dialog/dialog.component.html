@@ -1,7 +1,7 @@
 <div class="relative flex flex-col w-full h-full">
   <!-- Content -->
   <div
-    class="min-w-52 flex flex-col flex-auto items-center p-8 pb-6"
+    class="min-w-52 flex flex-col flex-auto items-center p-6"
   >
     <ng-container *ngIf="data.title || data.message">
       <div
@@ -28,7 +28,7 @@
     <!-- Cancel -->
     <button
       *ngIf="data.actions.cancel.show"
-      class="py-3 border-gray-300 hover:bg-gray-200"
+      class="py-2.5 border-gray-300 hover:bg-gray-200"
       [ngClass]="data.actions.confirm.show ? 'w-1/2 border-r' : 'w-full'"
       [matDialogClose]="'cancelled'"
     >
@@ -38,7 +38,7 @@
     <!-- Confirm -->
     <button
       *ngIf="data.actions.confirm.show"
-      class="py-3 text-primary hover:bg-gray-200"
+      class="py-2.5 text-primary hover:bg-gray-200"
       [ngClass]="data.actions.cancel.show ? 'w-1/2' : 'w-full'"
       [matDialogClose]="'confirmed'"
     >

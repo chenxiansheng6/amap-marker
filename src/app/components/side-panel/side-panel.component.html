@@ -5,9 +5,10 @@
 >
   @if (mode() === 'view') {
     <h3 class="text-xl font-semibold mb-3">标记列表</h3>
-    @for (data of dataSource(); track data.id) {
+    @for (data of dataSource(); track data.id; let last = $last) {
       <div
-        class="flex items-center justify-between card mb-3 cursor-pointer"
+        class="flex items-center justify-between card cursor-pointer"
+        [ngClass]="last ? 'mb-4' : 'mb-3'"
         (click)="focusMarker(data)"
       >
         <div class="flex items-center gap-3">
@@ -28,16 +29,12 @@
         </div>
       </div>
     } @empty {
-      <div class="flex items-center justify-center card mb-3">
+      <div class="flex items-center justify-center card mb-4">
         <p class="text-gray-400">暂无数据</p>
       </div>
     }
 
-    <div class="absolute bottom-5 w-86 flex items-center gap-4">
-      <!-- <button
-        class="btn w-1/2 text-red-400 border border-red-400 hover:text-white hover:bg-red-400"
-        (click)="mode.set('delete')"
-      >删除</button> -->
+    <div class="sticky bottom-0 w-86 flex items-center gap-4">
       <button
         class="btn w-full text-primary border border-primary hover:text-white hover:bg-primary"
         (click)="mode.set('create')"
@@ -47,7 +44,7 @@
 
   @if (mode() === 'create' || mode() === 'edit') {
     <h3 class="text-xl font-semibold mb-3">{{ mode() === 'create' ? '标记创建' : '标记编辑' }}</h3>
-    <div [formGroup]="dataForm">
+    <div [formGroup]="dataForm" class="mb-4">
       <div class="grid grid-cols-3 gap-2 mb-3">
         <div class="flex flex-col gap-1">
           <label for="lng" class="text-sm">经度</label>
@@ -96,7 +93,7 @@
       </div>
     </div>
 
-    <div class="absolute bottom-5 w-86 flex items-center gap-4">
+    <div class="sticky bottom-0 w-86 flex items-center gap-4">
       <button
         class="btn w-1/2 text-gray-400 border border-gray-400 hover:text-white hover:bg-gray-400"
         [disabled]="operating()"

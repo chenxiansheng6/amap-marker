@@ -18,9 +18,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { slideInRight } from '../../animations';
-import { AmapService, type Data, DataService } from '../../services';
+import { AmapService, DataService } from '../../services';
 import { Subject, take, takeUntil } from 'rxjs';
 import { DialogService } from '../dialog';
+import type { Data } from '../../interfaces';
 
 @Component({
   selector: 'app-side-panel',

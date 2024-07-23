@@ -3,15 +3,7 @@ import { v4 } from 'uuid';
 import { BehaviorSubject, map, Observable, switchMap, take, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { SettingService } from './setting.service';
-
-export interface Data {
-  id: string;
-  name: string;
-  description: string;
-  lng: string;
-  lat: string;
-  images?: string[];
-}
+import { Data, Response } from '../interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -39,8 +31,8 @@ export class DataService {
   // 获取点数据
   public getData(): Observable<Data[]> {
     const url = `${this._endpoint}/api/data`;
-    return this._http.get<{ content: Data[] }>(url).pipe(
-      map((res) => res.content),
+    return this._http.get<Response<Data[]>>(url).pipe(
+      map((res) => res.success ? res.data : []),
       tap((data) => this._dataSource.next(data)),
     );
   }
@@ -49,13 +41,18 @@ export class DataService {
    * 创建标签数据
    * @param data
    */
-  public createData(data: Partial<Data>): Observable<Data> {
+  public createData(data: Partial<Data>): Observable<boolean> {
     const url = `${this._endpoint}/api/data`;
     return this.dataSource$.pipe(
       take(1),
       switchMap((dataSource) => {
-        const newData = { ...data, id: v4() } as Data;
-        return this._http.post<Data>(url, newData).pipe(
+        const newData = {
+          ...data,
+          id: v4(),
+          created_at: new Date().toISOString(),
+        } as Data;
+        return this._http.post<Response<Data>>(url, newData).pipe(
+          map((res) => res.success),
           tap(() => this._dataSource.next([newData, ...dataSource])),
         );
       }),
@@ -66,11 +63,15 @@ export class DataService {
    * 更新标签数据
    * @param data
    */
-  public updateData(data: Data): Observable<Data> {
+  public updateData(data: Data): Observable<boolean> {
     const url = `${this._endpoint}/api/data`;
     return this.dataSource$.pipe(
       take(1),
-      switchMap((dataSource) => this._http.put<Data>(url, data).pipe(
+      switchMap((dataSource) => this._http.put<Response<Data>>(url, {
+        ...data,
+        updated_at: new Date().toISOString(),
+      }).pipe(
+        map((res) => res.success),
         tap(() => {
           const index = dataSource.findIndex((item) => item.id === data.id);
           dataSource[index] = data;
@@ -84,11 +85,12 @@ export class DataService {
    * 删除标签数据
    * @param id
    */
-  public deleteData(id: string): Observable<void> {
-    const url = `${this._endpoint}/api/data`;
+  public deleteData(id: string): Observable<boolean> {
+    const url = `${this._endpoint}/api/data/${id}`;
     return this.dataSource$.pipe(
       take(1),
-      switchMap((dataSource) => this._http.delete<void>(url, { body: { id } }).pipe(
+      switchMap((dataSource) => this._http.delete<Response<string>>(url).pipe(
+        map((res) => res.success),
         tap(() => {
           const index = dataSource.findIndex((item) => item.id === id);
           dataSource.splice(index, 1);
