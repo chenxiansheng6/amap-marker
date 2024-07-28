@@ -91,6 +91,39 @@
           [formControlName]="'description'"
         ></textarea>
       </div>
+      <div class="mb-3">
+        <label class="text-sm">图片</label>
+        @if (mode() === 'create') {
+          <app-file-uploader
+            [accept]="'images/*'"
+            [multiple]="true"
+            [hideAreaAfterUpload]="false"
+            [maxFiles]="3"
+            (filesOnChange)="onFileUpload($event)"
+          ></app-file-uploader>
+          @if (errorMsg()) {
+            <div class="text-red-400 text-xs font-semibold mt-2">{{ errorMsg() }}</div>
+          }
+        } @else {
+          @let images = dataForm.get('images').value;
+          @if (images && images.length) {
+            <div class="grid grid-cols-3 grid-flow-row gap-3">
+              @for (url of images; track url; let i = $index) {
+                <div class="relative h-32 w-full rounded-lg overflow-hidden shadow">
+                  <img class="w-full h-full object-cover" [src]="url">
+                  <div class="absolute w-full h-full left-0 top-0">
+                    <img
+                      src="common/close.svg"
+                      class="w-10 h-10 absolute right-0 top-0 p-1 cursor-pointer"
+                      (click)="removeImage(i)"
+                    >
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
     </div>
 
     <div class="sticky bottom-0 w-86 flex items-center gap-4">
@@ -102,7 +135,7 @@
       <button
         class="btn w-1/2 text-primary border border-primary hover:text-white hover:bg-primary"
         [disabled]="operating() || dataForm.invalid"
-        (click)="saveUpdate()"
+        (click)="save()"
       >{{ mode() === 'create' ? '创建' : '保存' }}</button>
     </div>
   }

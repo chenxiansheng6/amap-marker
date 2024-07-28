@@ -66,7 +66,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             <span class="font-semibold">${data.name}</span>
             <img src="common/close.svg" class="w-6 h-6 cursor-pointer info-close">
           </div>
-          <p class="text-sm">${data.description}</p>
+          <p class="text-sm">${data.description || ''}</p>
         </div>
       `,
     });

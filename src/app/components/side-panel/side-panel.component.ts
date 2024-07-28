@@ -18,16 +18,24 @@ import {
   Validators,
 } from '@angular/forms';
 import { slideInRight } from '../../animations';
-import { AmapService, DataService } from '../../services';
-import { Subject, take, takeUntil } from 'rxjs';
+import { AmapService, DataService, UtilService } from '../../services';
+import { forkJoin, Subject, switchMap, take, takeUntil } from 'rxjs';
 import { DialogService } from '../dialog';
 import type { Data } from '../../interfaces';
+import { FileUploaderComponent } from '../file-uploader/file-uploader.component';
 
 @Component({
   selector: 'app-side-panel',
   templateUrl: './side-panel.component.html',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, FormsModule, ReactiveFormsModule],
+  imports: [
+    NgIf,
+    NgFor,
+    NgClass,
+    FormsModule,
+    ReactiveFormsModule,
+    FileUploaderComponent,
+  ],
   animations: [slideInRight],
 })
 export class SidePanelComponent implements OnInit, OnDestroy {
@@ -51,9 +59,8 @@ export class SidePanelComponent implements OnInit, OnDestroy {
     description: FormControl<string | null>;
     lng: FormControl<string | null>;
     lat: FormControl<string | null>;
+    images: FormControl<string[] | null>;
   }>;
-
-  public uploading = signal(false);
 
   #unsubscribeAll = new Subject<null>();
 
@@ -61,6 +68,7 @@ export class SidePanelComponent implements OnInit, OnDestroy {
     @Inject(FormBuilder) private _fb: FormBuilder,
     @Inject(AmapService) private _amapService: AmapService,
     @Inject(DataService) private _dataService: DataService,
+    @Inject(UtilService) private _utilService: UtilService,
     @Inject(DialogService) private _dialogService: DialogService,
   ) {
     effect(() => {
@@ -79,6 +87,7 @@ export class SidePanelComponent implements OnInit, OnDestroy {
       description: [''],
       lng: ['', Validators.required],
       lat: ['', Validators.required],
+      images: [null],
     });
   }
 
@@ -129,23 +138,50 @@ export class SidePanelComponent implements OnInit, OnDestroy {
 
   /***************** 创建/编辑 *****************/
   public operating = signal(false);
+  public uploadFiles: File[] = [];
+  public errorMsg = signal<string>('');
   // 取消创建
   public cancelUpdate(): void {
     this.mode.set('view');
     this.deleteCoords();
     this.dataForm.reset();
   }
-  // 保存更新
-  public saveUpdate(): void {
+  // 保存创建/更新
+  public save(): void {
+    this.mode() === 'create' ? this.create() : this.update();
+  }
+  // 创建
+  public create(): void {
+    this.operating.set(true);
+
+    forkJoin(this.uploadFiles.map((_) =>
+      this._utilService.uploadImage(_)
+    )).pipe(
+      take(1),
+      switchMap((images) => {
+        this.dataForm.patchValue({ 
+          images: images.filter((_) => _),
+        });
+        return this._dataService.createData(this.dataForm.value);
+      }),
+    )
+    .subscribe({
+      next: () => {
+        this.operating.set(false);
+        this.mode.set('view');
+        this.createMarker.set(null);
+        this.dataForm.reset();
+      },
+      error: () => {
+        this.operating.set(false);
+      },
+    });
+  }
+  // 更新
+  public update(): void {
     const data = this.dataForm.getRawValue();
 
-    let request$ = null;
-
-    request$ = this.mode() === 'create'
-      ? this._dataService.createData(data)
-      : this._dataService.updateData(data);
-
-    request$
+    this._dataService.updateData(data)
       .pipe(take(1))
       .subscribe(() => {
         this.mode.set('view');
@@ -187,5 +223,26 @@ export class SidePanelComponent implements OnInit, OnDestroy {
       this._amapService.map.remove(this.createMarker());
       this.createMarker.set(null);
     }
+  }
+
+  public onFileUpload(event: File[]): void {
+    if (!event) return;
+    this.errorMsg.set('');
+
+    if (event.length > 0) {
+      if (event.some((_) => _.size > 10 * 1024 * 1024)) {
+        this.errorMsg.set('上传图片大小不能超过 10MB，请重新上传');
+        return;
+      }
+      this.uploadFiles = event;
+    } else {
+      this.uploadFiles = [];
+    }
+  }
+
+  public removeImage(index: number): void {
+    this.dataForm.patchValue({
+      images: this.dataForm.value.images.filter((_, i) => i !== index),
+    });
   }
 }
