@@ -4,3 +4,14 @@
   [show]="showPanel()"
   (toggle)="showPanel.set(!showPanel())"
 ></app-side-panel>
+
+<!-- 选择图片预览 -->
+ @if (showImageUrl()) {
+  <div
+    class="fixed left-0 top-0 w-full h-full px-32 bg-black/50 backdrop-blur-md z-50 flex justify-center items-center"
+  >
+    <img [src]="showImageUrl()" class="w-full h-full object-contain">
+    <img src="common/close.svg" class="w-12 h-12 absolute right-10 top-10 cursor-pointer" (click)="showImageUrl.set('')">
+  </div>
+ }
+

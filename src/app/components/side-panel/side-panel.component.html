@@ -121,6 +121,17 @@
                 </div>
               }
             </div>
+          } @else {
+              <app-file-uploader
+              [accept]="'images/*'"
+              [multiple]="true"
+              [hideAreaAfterUpload]="false"
+              [maxFiles]="3"
+              (filesOnChange)="onFileUpload($event)"
+            ></app-file-uploader>
+            @if (errorMsg()) {
+              <div class="text-red-400 text-xs font-semibold mt-2">{{ errorMsg() }}</div>
+            }
           }
         }
       </div>

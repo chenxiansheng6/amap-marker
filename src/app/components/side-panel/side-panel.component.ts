@@ -179,15 +179,31 @@ export class SidePanelComponent implements OnInit, OnDestroy {
   }
   // 更新
   public update(): void {
-    const data = this.dataForm.getRawValue();
+    this.operating.set(true);
 
-    this._dataService.updateData(data)
-      .pipe(take(1))
-      .subscribe(() => {
+    forkJoin(this.uploadFiles.map((_) =>
+      this._utilService.uploadImage(_)
+    )).pipe(
+      take(1),
+      switchMap((images) => {
+        const formImg = this.dataForm.value.images || [];
+        this.dataForm.patchValue({ 
+          images: formImg.concat(images.filter((_) => _)),
+        });
+        return this._dataService.updateData(this.dataForm.getRawValue());
+      }),
+    )
+    .subscribe({
+      next: () => {
+        this.operating.set(false);
         this.mode.set('view');
         this.createMarker.set(null);
         this.dataForm.reset();
-      });
+      },
+      error: () => {
+        this.operating.set(false);
+      },
+    });
   }
   // 拾取坐标
   public pickCoords(): void {

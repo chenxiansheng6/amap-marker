@@ -9,6 +9,13 @@
   <script src="http://webapi.amap.com/maps?v=2.0&key=14ab49f5ba4bcd2a85274072140db50c"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>
+    const broadcastChannel = new BroadcastChannel('amap');
+
+    function postMessage(data) {
+      broadcastChannel.postMessage(data);
+    }
+  </script>
 </head>
 <body>
   <app-root></app-root>
