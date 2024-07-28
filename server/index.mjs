@@ -114,8 +114,7 @@ function deleteData(req, res) {
 
 // POST /api/upload 上传文件
 function uploadFile(req, res) {
-  const dir = `uploads/${new Date().toLocaleDateString().replace(/\//g, '-')}`;
-  const form = new multiparty.Form({ uploadDir: dir });
+  const form = new multiparty.Form();
   form.parse(req, (err, fields, files) => {
     if (err) {
       error(err);
@@ -123,9 +122,13 @@ function uploadFile(req, res) {
       return;
     }
     const file = files.file[0];
-    const tempPath = file.path;
-    const targetPath = path.join(__dirname, dir, file.originalFilename);
-    fs.rename(tempPath, targetPath, (err) => {
+    const dir = `uploads/${new Date().toLocaleDateString().replace(/\//g, '-')}`;
+    const targetDir = path.join(__dirname, dir);
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+    const targetPath = path.join(targetDir, file.originalFilename);
+    fs.rename(file.path, targetPath, (err) => {
       if (err) {
         error(err);
         response(res, 500, { success: false, message: 'Server Error' });
